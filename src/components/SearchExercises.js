@@ -2,15 +2,45 @@ import React, {useEffect, useState} from 'react';
 import { Box, Button, Stack, TextField, Typography } from '@mui/material';
 
 import { exerciseOptions, fetchData } from '../utils/fetchData'; 
+import HorizontalScrollbar from './HorizontalScrollbar';
 
-const SearchExercises = () => {
+const SearchExercises = ({ setExercises, bodyPart, setBodyPart}) => {  //data passed in from homepage
 
-    const [search, setSearch] = useState('')
+    //(Search bar) Search state
+    const [search, setSearch] = useState()
+
+    //(Categories) Add categories to the UI state
+    const [bodyParts, setBodyParts] = useState([])
     
+    //useEffect to Fetch categories section as soon as page loads, async function from here to fetch from API, sets the categories to the 'setBodyParts'.
+    useEffect(() =>{
+        const fetchExercisesData = async () => {
+            const bodyPartsData = await fetchData('https://exercisedb.p.rapidapi.com/exercises/bodyPartList', exerciseOptions)
+
+            setBodyParts(['all', ...bodyPartsData]);
+        }
+        fetchExercisesData();  //Call the function immediateley as soon as app loads
+    }, [])
+
+    
+    
+    //onClick button function
     const handleSearch = async() => {
-        
+        //if the search button is clicked, fetch API data
         if(search)  {
-           const exercisesData = await fetchData('https://exercisedb.p.rapidapi.com/exercises/bodyPartList');
+           const exercisesData = await fetchData('https://exercisedb.p.rapidapi.com/exercises', exerciseOptions);
+        
+        //Apply search functionality for filtered results, if you just type back w/o filter 100s of options open
+        //Does exercisesData include the search term we are looking for or maybe the name doesnt include the search but what about equipment, bodyParts?
+        const searchedExercises = exercisesData.filter(
+            (exercise) => exercise.name.toLowerCase().includes(search)
+            || exercise.target.toLowerCase().includes(search)
+            || exercise.equipment.toLowerCase().includes(search)
+            || exercise.bodyPart.toLowerCase().includes(search)
+        
+        )
+         setSearch('') //Clears the search bar
+         setExercises(searchedExercises) //sends the searched exercises to the setExercises state so that it can be later viewes in UI
         }
     }
 
@@ -21,12 +51,16 @@ const SearchExercises = () => {
             </Typography>
             <Box position="relative" mb="72px">
                 <TextField sx={{ input: { fontWeight: '700', border:'none', borderRadius: '4px'}, width: { lg: '800px', xs: '350px'}, backgroundColor:'#fff', borderRadius:'14px'}}height="76px" 
-                           value={search} onChange={(e) => setSearch(e.targert.value.toLowerCase())} placeholder="Search Exercises" type="text" />
+                           value={search} onChange={(e) => setSearch(e.target.value.toLowerCase())} placeholder="Search Exercises" type="text" />
                 <Button sx={{bgcolor:'#FF2625', color: '#fff', textTransform: 'none', width: { lg: '100px', xs: '80px'}, fontSize: { lg:'20px', xs:'14px'}, height: '56px', position:"absolute", right:'0'}} 
                         onClick={handleSearch} className="search-btn">Search</Button>
+            </Box>
+            <Box sx={{ position: 'relative', width: '100%', p: '20px'}}>
+                <HorizontalScrollbar data={bodyParts} bodyPart={bodyPart} setBodyPart={setBodyPart} isBodyParts /> {/* Pass in the bodyParts data to to Horizontal Scrollbar component*/}
             </Box>
         </Stack>
     )
 }
 
 export default SearchExercises
+

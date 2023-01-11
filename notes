@@ -1,0 +1,11 @@
+  {exerciseVideos?.slice(0,3).map((item,index) =>(
+                        <a 
+                            key={index}
+                            className="exercise-video"
+                            href={`https://www.youtube.com/watch?v=${item.video.videoId}`}
+                            target="_blank"
+                            rel="norefferer"
+                            >
+                                <img src={item.video.thumbnails[0].url} alt={item.video.title}/>
+                        </a>
+                    ))}
